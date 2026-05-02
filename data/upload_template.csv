@@ -1,0 +1,7 @@
+date,country,market,commodity,price,currency,unit
+2025-01-01,Cambodia,Siem Reap,Rice,3100,KHR,kg
+2025-02-01,Cambodia,Siem Reap,Rice,3150,KHR,kg
+2025-03-01,Cambodia,Siem Reap,Rice,3225,KHR,kg
+2025-01-01,Cambodia,Phnom Penh,Vegetable oil,6200,KHR,liter
+2025-02-01,Cambodia,Phnom Penh,Vegetable oil,6350,KHR,liter
+2025-03-01,Cambodia,Phnom Penh,Vegetable oil,6500,KHR,liter

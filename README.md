@@ -13,10 +13,13 @@ market-price-early-warning/
 |-- run_app.ps1
 |-- requirements.txt
 |-- README.md
+|-- .streamlit/
+|   `-- config.toml
 |-- data/
 |   |-- global-market-monitor.csv
 |   |-- global-market-monitor_subnational.csv
-|   `-- sample_food_prices.csv
+|   |-- sample_food_prices.csv
+|   `-- upload_template.csv
 |-- src/
 |   |-- data_loader.py
 |   |-- preprocessing.py
@@ -77,6 +80,23 @@ On macOS or Linux:
 source .venv/bin/activate
 ```
 
+## Launch Online
+
+The repository is ready for Streamlit Community Cloud deployment.
+
+1. Go to [share.streamlit.io](https://share.streamlit.io).
+2. Sign in with GitHub.
+3. Click `Create app`.
+4. Choose `Yup, I have an app`.
+5. Enter:
+   - Repository: `Yamans86/market-price-early-warning`
+   - Branch: `main`
+   - Main file path: `app.py`
+6. Optional: choose a custom subdomain, for example `market-price-early-warning`.
+7. Click `Deploy`.
+
+Streamlit Community Cloud deploys apps to a public `streamlit.app` URL that can be shared with anyone. After deployment, every `git push` to `main` updates the online app automatically.
+
 ## Supported Data
 
 Standard uploaded CSV columns:
@@ -90,6 +110,12 @@ Standard uploaded CSV columns:
 | `price` | Numeric price | `3100` |
 | `currency` | Currency code or name | `KHR` |
 | `unit` | Unit of measure | `kg` |
+
+The app includes a downloadable template in the sidebar. The template file is also stored at:
+
+```text
+data/upload_template.csv
+```
 
 Global Market Monitor columns used:
 

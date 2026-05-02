@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import plotly.graph_objects as go
 import pandas as pd
 import streamlit as st
@@ -10,6 +12,9 @@ from src.forecasting import forecast_next_months
 from src.indicators import add_market_indicators
 from src.preprocessing import filter_data, preprocess_price_data
 from src.recommendations import generate_recommendation
+
+
+TEMPLATE_PATH = Path(__file__).resolve().parent / "data" / "upload_template.csv"
 
 
 st.set_page_config(
@@ -38,6 +43,16 @@ def load_and_prepare_data(uploaded_file):
 )
 def train_cached_alert_model(prepared_data):
     return train_alert_model(prepared_data)
+
+
+@st.cache_data(show_spinner=False)
+def load_template_bytes() -> bytes:
+    if TEMPLATE_PATH.exists():
+        return TEMPLATE_PATH.read_bytes()
+
+    columns = "date,country,market,commodity,price,currency,unit\n"
+    example = "2025-01-01,Cambodia,Siem Reap,Rice,3100,KHR,kg\n"
+    return (columns + example).encode("utf-8")
 
 
 def build_price_chart(data, forecast):
@@ -94,6 +109,13 @@ st.caption(
 
 with st.sidebar:
     st.header("Upload Data")
+    st.download_button(
+        label="Download CSV template",
+        data=load_template_bytes(),
+        file_name="market_price_upload_template.csv",
+        mime="text/csv",
+        help="Use this template for standard food price uploads.",
+    )
     uploaded_file = st.file_uploader(
         "Food price CSV",
         type=["csv"],

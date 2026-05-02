@@ -36,7 +36,7 @@ market-price-early-warning/
 
 - Load national and subnational Global Market Monitor data by default.
 - Upload a standard food price CSV or a compatible GMM-format CSV.
-- Convert CSV, Excel, Word, and PDF files into the standard upload template from the `AI Data Converter` tab.
+- Convert CSV, Excel, Word, and PDF files into the standard upload template from the `AI Data Converter` button.
 - Filter by country, market, commodity, and date range.
 - Display a Plotly line chart of observed price index, 6-month rolling mean, and 3-month forecast.
 - Calculate monthly percentage change, rolling mean, rolling standard deviation, and z-score.
@@ -121,7 +121,7 @@ data/upload_template.csv
 
 ## AI Data Converter
 
-The `AI Data Converter` tab helps users bring messy market data into the app without manually rebuilding the CSV first.
+The `AI Data Converter` button in the sidebar helps users bring messy market data into the app without manually rebuilding the CSV first.
 
 Supported uploads:
 

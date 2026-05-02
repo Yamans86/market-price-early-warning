@@ -108,14 +108,21 @@ st.caption(
     "A Streamlit MVP for monitoring food price volatility and supporting cash programming decisions."
 )
 
+if "app_view" not in st.session_state:
+    st.session_state["app_view"] = "dashboard"
+
 with st.sidebar:
     st.header("Upload Data")
+    if st.button("AI Data Converter", use_container_width=True):
+        st.session_state["app_view"] = "converter"
+        st.rerun()
     st.download_button(
         label="Download CSV template",
         data=load_template_bytes(),
         file_name="market_price_upload_template.csv",
         mime="text/csv",
         help="Use this template for standard food price uploads.",
+        use_container_width=True,
     )
     uploaded_file = st.file_uploader(
         "Food price CSV",
@@ -164,9 +171,7 @@ if len(date_range) != 2:
     st.info("Select a start and end date to continue.")
     st.stop()
 
-dashboard_tab, converter_tab = st.tabs(["Dashboard", "AI Data Converter"])
-
-with dashboard_tab:
+if st.session_state["app_view"] == "dashboard":
     filtered = filter_data(
         data=data,
         country=country,
@@ -247,7 +252,11 @@ with dashboard_tab:
                 "the app uses transparent threshold rules."
             )
 
-with converter_tab:
+if st.session_state["app_view"] == "converter":
+    if st.button("Back to dashboard"):
+        st.session_state["app_view"] = "dashboard"
+        st.rerun()
+
     st.subheader("AI-Assisted Data Converter")
     st.write(
         "Upload CSV, Excel, Word, or PDF files. The converter extracts the most likely table, "

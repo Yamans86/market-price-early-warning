@@ -8,22 +8,24 @@ The app now uses the Global Market Monitor CSV files provided in `data/` as the 
 
 ```text
 market-price-early-warning/
-├── app.py
-├── requirements.txt
-├── README.md
-├── data/
-│   ├── global-market-monitor.csv
-│   ├── global-market-monitor_subnational.csv
-│   └── sample_food_prices.csv
-├── src/
-│   ├── data_loader.py
-│   ├── preprocessing.py
-│   ├── indicators.py
-│   ├── anomaly_detection.py
-│   ├── forecasting.py
-│   └── recommendations.py
-└── notebooks/
-    └── exploratory_analysis.ipynb
+|-- app.py
+|-- run_app.bat
+|-- run_app.ps1
+|-- requirements.txt
+|-- README.md
+|-- data/
+|   |-- global-market-monitor.csv
+|   |-- global-market-monitor_subnational.csv
+|   `-- sample_food_prices.csv
+|-- src/
+|   |-- data_loader.py
+|   |-- preprocessing.py
+|   |-- indicators.py
+|   |-- anomaly_detection.py
+|   |-- forecasting.py
+|   `-- recommendations.py
+`-- notebooks/
+    `-- exploratory_analysis.ipynb
 ```
 
 ## Features
@@ -39,6 +41,28 @@ market-price-early-warning/
 - Generate CVA recommendations based on `Normal`, `Watch`, `Alert`, and `Critical` levels.
 
 ## Installation
+
+### One-click Windows launcher
+
+Double-click:
+
+```text
+run_app.bat
+```
+
+Or run the PowerShell menu:
+
+```powershell
+.\run_app.ps1
+```
+
+The launcher creates `.venv`, installs dependencies from `requirements.txt`, and starts Streamlit at:
+
+```text
+http://localhost:8501
+```
+
+### Manual run
 
 ```bash
 python -m venv .venv

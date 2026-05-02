@@ -7,6 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from src.anomaly_detection import classify_alerts, train_alert_model
+from src.data_converter import convert_uploaded_file
 from src.data_loader import load_price_data
 from src.forecasting import forecast_next_months
 from src.indicators import add_market_indicators
@@ -124,9 +125,18 @@ with st.sidebar:
             "or Global Market Monitor columns."
         ),
     )
+    if "converted_data" in st.session_state:
+        st.checkbox("Use converted data", key="use_converted_data")
+        if st.button("Clear converted data"):
+            st.session_state.pop("converted_data", None)
+            st.session_state["use_converted_data"] = False
+            st.rerun()
 
 try:
-    data = load_and_prepare_data(uploaded_file)
+    if st.session_state.get("use_converted_data") and "converted_data" in st.session_state:
+        data = preprocess_price_data(st.session_state["converted_data"])
+    else:
+        data = load_and_prepare_data(uploaded_file)
 except ValueError as error:
     st.error(str(error))
     st.stop()
@@ -154,83 +164,147 @@ if len(date_range) != 2:
     st.info("Select a start and end date to continue.")
     st.stop()
 
-filtered = filter_data(
-    data=data,
-    country=country,
-    market=market,
-    commodity=commodity,
-    start_date=date_range[0],
-    end_date=date_range[1],
-)
+dashboard_tab, converter_tab = st.tabs(["Dashboard", "AI Data Converter"])
 
-if filtered.empty:
-    st.warning("No records match the selected filters. Try widening the date range or changing filters.")
-    st.stop()
-
-series = add_market_indicators(filtered)
-series = classify_alerts(series, model_bundle=alert_model)
-forecast = forecast_next_months(series, months=3)
-latest = series.sort_values("date").iloc[-1]
-recommendation = generate_recommendation(latest["alert_level"])
-
-metric_columns = st.columns(5)
-metric_columns[0].metric(
-    "Latest price/index",
-    f"{latest['currency']} {latest['price']:,.0f}",
-    f"{latest['monthly_pct_change']:+.1f}% MoM",
-)
-metric_columns[1].metric("6-month mean", f"{latest['currency']} {latest['rolling_mean_6m']:,.0f}")
-metric_columns[2].metric("Rolling std. dev.", f"{latest['rolling_std_6m']:,.1f}")
-metric_columns[3].metric("Z-score", f"{latest['z_score']:+.2f}")
-metric_columns[4].metric("Alert level", latest["alert_level"])
-
-left_column, right_column = st.columns([1.8, 1])
-
-with left_column:
-    st.subheader("Price Trend and Forecast")
-    st.plotly_chart(build_price_chart(series, forecast), use_container_width=True)
-
-with right_column:
-    st.subheader("Cash Programming Recommendation")
-    st.markdown(f"**Recommended action:** {recommendation['action']}")
-    st.write(recommendation["rationale"])
-    st.caption(
-        f"Alert model: {alert_model.status}"
-        + (f" Validation accuracy: {alert_model.accuracy:.1%}." if alert_model.accuracy is not None else "")
-        + f" Training rows: {alert_model.training_rows:,}."
+with dashboard_tab:
+    filtered = filter_data(
+        data=data,
+        country=country,
+        market=market,
+        commodity=commodity,
+        start_date=date_range[0],
+        end_date=date_range[1],
     )
-    st.markdown("**Suggested checks**")
-    for check in recommendation["checks"]:
-        st.write(f"- {check}")
 
-st.subheader("Indicator Table")
-st.dataframe(
-    series[
-        [
-            "date",
-            "country",
-            "market",
-            "commodity",
-            "price",
-            "currency",
-            "unit",
-            "monthly_pct_change",
-            "rolling_mean_6m",
-            "rolling_std_6m",
-            "z_score",
-            "alert_level",
-        ]
-    ].sort_values("date", ascending=False),
-    hide_index=True,
-    use_container_width=True,
-)
+    if filtered.empty:
+        st.warning("No records match the selected filters. Try widening the date range or changing filters.")
+    else:
+        series = add_market_indicators(filtered)
+        series = classify_alerts(series, model_bundle=alert_model)
+        forecast = forecast_next_months(series, months=3)
+        latest = series.sort_values("date").iloc[-1]
+        recommendation = generate_recommendation(latest["alert_level"])
 
-with st.expander("Methodology notes"):
+        metric_columns = st.columns(5)
+        metric_columns[0].metric(
+            "Latest price/index",
+            f"{latest['currency']} {latest['price']:,.0f}",
+            f"{latest['monthly_pct_change']:+.1f}% MoM",
+        )
+        metric_columns[1].metric("6-month mean", f"{latest['currency']} {latest['rolling_mean_6m']:,.0f}")
+        metric_columns[2].metric("Rolling std. dev.", f"{latest['rolling_std_6m']:,.1f}")
+        metric_columns[3].metric("Z-score", f"{latest['z_score']:+.2f}")
+        metric_columns[4].metric("Alert level", latest["alert_level"])
+
+        left_column, right_column = st.columns([1.8, 1])
+
+        with left_column:
+            st.subheader("Price Trend and Forecast")
+            st.plotly_chart(build_price_chart(series, forecast), use_container_width=True)
+
+        with right_column:
+            st.subheader("Cash Programming Recommendation")
+            st.markdown(f"**Recommended action:** {recommendation['action']}")
+            st.write(recommendation["rationale"])
+            st.caption(
+                f"Alert model: {alert_model.status}"
+                + (f" Validation accuracy: {alert_model.accuracy:.1%}." if alert_model.accuracy is not None else "")
+                + f" Training rows: {alert_model.training_rows:,}."
+            )
+            st.markdown("**Suggested checks**")
+            for check in recommendation["checks"]:
+                st.write(f"- {check}")
+
+        st.subheader("Indicator Table")
+        st.dataframe(
+            series[
+                [
+                    "date",
+                    "country",
+                    "market",
+                    "commodity",
+                    "price",
+                    "currency",
+                    "unit",
+                    "monthly_pct_change",
+                    "rolling_mean_6m",
+                    "rolling_std_6m",
+                    "z_score",
+                    "alert_level",
+                ]
+            ].sort_values("date", ascending=False),
+            hide_index=True,
+            use_container_width=True,
+        )
+
+        with st.expander("Methodology notes"):
+            st.write(
+                "The app calculates month-on-month price change, 6-month rolling statistics, "
+                "and a rolling z-score. For Global Market Monitor files, the price line is a "
+                "derived index compounded from reported monthly percentage changes because the "
+                "source files do not include nominal prices. When scikit-learn is installed, "
+                "the alert classifier is trained from historical GMM trend labels; otherwise "
+                "the app uses transparent threshold rules."
+            )
+
+with converter_tab:
+    st.subheader("AI-Assisted Data Converter")
     st.write(
-        "The app calculates month-on-month price change, 6-month rolling statistics, "
-        "and a rolling z-score. For Global Market Monitor files, the price line is a "
-        "derived index compounded from reported monthly percentage changes because the "
-        "source files do not include nominal prices. When scikit-learn is installed, "
-        "the alert classifier is trained from historical GMM trend labels; otherwise "
-        "the app uses transparent threshold rules."
+        "Upload CSV, Excel, Word, or PDF files. The converter extracts the most likely table, "
+        "maps available columns into the required template, and lets you download or use the "
+        "converted CSV in the dashboard."
     )
+
+    defaults = st.columns(4)
+    default_country = defaults[0].text_input("Default country", value="")
+    default_market = defaults[1].text_input("Default market", value="")
+    default_currency = defaults[2].text_input("Default currency", value="USD")
+    default_unit = defaults[3].text_input("Default unit", value="kg")
+
+    source_file = st.file_uploader(
+        "Upload any available market data file",
+        type=["csv", "xlsx", "xls", "docx", "pdf"],
+        key="converter_upload",
+    )
+
+    if source_file is None:
+        st.info("Upload a file to generate a template-compatible CSV.")
+    else:
+        try:
+            result = convert_uploaded_file(
+                source_file,
+                default_country=default_country,
+                default_market=default_market,
+                default_currency=default_currency,
+                default_unit=default_unit,
+            )
+        except Exception as error:
+            st.error(f"Could not convert this file: {error}")
+        else:
+            for message in result.messages:
+                st.caption(message)
+
+            st.markdown("**Detected column mapping**")
+            mapping_display = pd.DataFrame(
+                [{"template_column": target, "source_column": source} for target, source in result.mapping.items()]
+            )
+            st.dataframe(mapping_display, hide_index=True, use_container_width=True)
+
+            st.markdown("**Source preview**")
+            st.dataframe(result.source_preview, use_container_width=True)
+
+            st.markdown("**Converted template preview**")
+            st.dataframe(result.converted.head(100), hide_index=True, use_container_width=True)
+
+            converted_csv = result.converted.to_csv(index=False).encode("utf-8")
+            actions = st.columns(2)
+            actions[0].download_button(
+                "Download converted CSV",
+                data=converted_csv,
+                file_name="converted_market_price_data.csv",
+                mime="text/csv",
+            )
+            if actions[1].button("Use converted data in dashboard"):
+                st.session_state["converted_data"] = result.converted
+                st.session_state["use_converted_data"] = True
+                st.rerun()

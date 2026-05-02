@@ -22,6 +22,7 @@ market-price-early-warning/
 |   `-- upload_template.csv
 |-- src/
 |   |-- data_loader.py
+|   |-- data_converter.py
 |   |-- preprocessing.py
 |   |-- indicators.py
 |   |-- anomaly_detection.py
@@ -35,6 +36,7 @@ market-price-early-warning/
 
 - Load national and subnational Global Market Monitor data by default.
 - Upload a standard food price CSV or a compatible GMM-format CSV.
+- Convert CSV, Excel, Word, and PDF files into the standard upload template from the `AI Data Converter` tab.
 - Filter by country, market, commodity, and date range.
 - Display a Plotly line chart of observed price index, 6-month rolling mean, and 3-month forecast.
 - Calculate monthly percentage change, rolling mean, rolling standard deviation, and z-score.
@@ -116,6 +118,27 @@ The app includes a downloadable template in the sidebar. The template file is al
 ```text
 data/upload_template.csv
 ```
+
+## AI Data Converter
+
+The `AI Data Converter` tab helps users bring messy market data into the app without manually rebuilding the CSV first.
+
+Supported uploads:
+
+- `.csv`
+- `.xlsx`
+- `.xls`
+- `.docx`
+- `.pdf`
+
+The converter extracts the most likely table, infers which columns match `date`, `country`, `market`, `commodity`, `price`, `currency`, and `unit`, then creates a template-compatible CSV. Users can:
+
+- Preview the detected source table.
+- Review the inferred column mapping.
+- Download the converted CSV.
+- Load the converted data directly into the dashboard.
+
+For Word and PDF files, conversion works best when the document contains a real table or clearly separated columns. Scanned PDFs or image-only documents need OCR before the app can read them.
 
 Global Market Monitor columns used:
 
